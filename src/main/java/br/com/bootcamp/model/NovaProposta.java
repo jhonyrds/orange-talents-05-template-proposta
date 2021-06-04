@@ -2,10 +2,7 @@ package br.com.bootcamp.model;
 
 import br.com.bootcamp.util.CPFOrCNPJ;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -20,6 +17,7 @@ public class NovaProposta {
 
     @CPFOrCNPJ
     @NotBlank
+    @Column(unique = true)
     private String documento;
 
     @Email

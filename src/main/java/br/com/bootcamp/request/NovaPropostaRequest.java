@@ -1,6 +1,7 @@
 package br.com.bootcamp.request;
 
 import br.com.bootcamp.model.NovaProposta;
+import br.com.bootcamp.repository.NovaPropostaRepository;
 import br.com.bootcamp.util.CPFOrCNPJ;
 
 import javax.persistence.EntityManager;
@@ -37,6 +38,10 @@ public class NovaPropostaRequest {
         this.salarioBruto = salarioBruto;
     }
 
+    public String getDocumento() {
+        return documento;
+    }
+
     @Override
     public String toString() {
         return "NovaPropostaRequest{" +
@@ -48,7 +53,7 @@ public class NovaPropostaRequest {
                 '}';
     }
 
-    public NovaProposta toModel(EntityManager manager) {
+    public NovaProposta toModel(NovaPropostaRepository repository) {
         return new NovaProposta(documento, email, nome, endereco, salarioBruto);
     }
 }
