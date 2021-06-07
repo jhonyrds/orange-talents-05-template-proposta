@@ -1,10 +1,9 @@
-package br.com.bootcamp.request;
+package br.com.bootcamp.dto.request;
 
 import br.com.bootcamp.model.NovaProposta;
 import br.com.bootcamp.repository.NovaPropostaRepository;
 import br.com.bootcamp.util.CPFOrCNPJ;
 
-import javax.persistence.EntityManager;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -53,7 +52,7 @@ public class NovaPropostaRequest {
                 '}';
     }
 
-    public NovaProposta toModel(NovaPropostaRepository repository) {
+    public NovaProposta toModel() {
         return new NovaProposta(documento, email, nome, endereco, salarioBruto);
     }
 }
