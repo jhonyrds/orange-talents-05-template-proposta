@@ -62,6 +62,16 @@ public class NovaPropostaController {
 
     }
 
+    @GetMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> consultaProposta(@PathVariable("id") Long id) {
+        Optional<NovaProposta> proposta = repository.findById(id);
+        if (proposta.isPresent()) {
+            return ResponseEntity.ok().body(new PropostaResponse(proposta.get()));
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     private void realizarAnalise(NovaProposta proposta)
             throws JsonProcessingException {
         try {
