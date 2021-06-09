@@ -17,13 +17,13 @@ public class AnaliseRequest {
     private String nome;
 
     @NotNull
-    @ExisteId(entidade = NovaProposta.class, atributo = "idProposta")
+    @ExisteId(entidade = NovaProposta.class, atributo = "id")
     private Long idProposta;
 
     public AnaliseRequest(NovaProposta proposta) {
         this.documento = proposta.getDocumento();
         this.nome = proposta.getNome();
-        this.idProposta = proposta.getIdProposta();
+        this.idProposta = proposta.getId();
     }
 
     public String getDocumento() {

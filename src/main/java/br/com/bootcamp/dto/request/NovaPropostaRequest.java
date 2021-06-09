@@ -1,7 +1,6 @@
 package br.com.bootcamp.dto.request;
 
 import br.com.bootcamp.model.NovaProposta;
-import br.com.bootcamp.repository.NovaPropostaRepository;
 import br.com.bootcamp.util.CPFOrCNPJ;
 
 import javax.validation.constraints.Email;

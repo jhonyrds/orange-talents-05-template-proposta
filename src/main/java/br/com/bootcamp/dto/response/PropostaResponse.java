@@ -1,35 +1,23 @@
 package br.com.bootcamp.dto.response;
 
+import br.com.bootcamp.model.NovaProposta;
+import br.com.bootcamp.model.enums.StatusProposta;
+
 public class PropostaResponse {
 
-    private String documento;
-    private String nome;
-    private String resultadoSolicitacao;
-    private String idProposta;
+    private Long idProposta;
+    private StatusProposta statusProposta;
 
-    @Deprecated
-    public PropostaResponse(){}
-
-    public PropostaResponse(String documento, String nome, String resultadoSolicitacao, String idProposta) {
-        this.documento = documento;
-        this.nome = nome;
-        this.resultadoSolicitacao = resultadoSolicitacao;
-        this.idProposta = idProposta;
+    public PropostaResponse(NovaProposta proposta) {
+        this.idProposta = proposta.getId();
+        this.statusProposta = proposta.getStatusProposta();
     }
 
-    public String getDocumento() {
-        return documento;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public String getResultadoSolicitacao() {
-        return resultadoSolicitacao;
-    }
-
-    public String getIdProposta() {
+    public Long getId() {
         return idProposta;
+    }
+
+    public StatusProposta getStatusProposta() {
+        return statusProposta;
     }
 }

@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 public class NovaProposta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idProposta;
+    private Long id;
 
     @CPFOrCNPJ
     @NotBlank
@@ -38,6 +38,8 @@ public class NovaProposta {
     @Enumerated(EnumType.STRING)
     private StatusProposta statusProposta;
 
+    private String idCartao;
+
     @Deprecated
     public NovaProposta() {
     }
@@ -50,8 +52,8 @@ public class NovaProposta {
         this.salarioBruto = salarioBruto;
     }
 
-    public Long getIdProposta() {
-        return idProposta;
+    public Long getId() {
+        return id;
     }
 
     public String getDocumento() {
@@ -62,7 +64,19 @@ public class NovaProposta {
         return nome;
     }
 
+    public StatusProposta getStatusProposta() {
+        return statusProposta;
+    }
+
     public void setStatusProposta(StatusProposta statusProposta) {
         this.statusProposta = statusProposta;
+    }
+
+    public String getIdCartao() {
+        return idCartao;
+    }
+
+    public void setIdCartao(String idCartao) {
+        this.idCartao = idCartao;
     }
 }
