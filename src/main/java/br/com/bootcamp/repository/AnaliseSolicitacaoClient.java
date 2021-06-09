@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @FeignClient(name = "analise-de-propostas", url = "${analise.proposta}")
 public interface AnaliseSolicitacaoClient {
 
-    @RequestMapping(method = RequestMethod.POST, value = "/solicitacao")
+    @RequestMapping(method = RequestMethod.POST, value = "${analise.requested}")
     PropostaResponse analisarProposta(AnaliseRequest request);
 
 

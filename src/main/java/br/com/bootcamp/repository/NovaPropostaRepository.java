@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface NovaPropostaRepository extends JpaRepository<NovaProposta,Long> {
-    @Query(value = "SELECT documento FROM NovaProposta WHERE documento = :documento", nativeQuery = true)
-    String findByDocumento(@Param("documento") String documento);
+public interface NovaPropostaRepository extends JpaRepository<NovaProposta, Long> {
+    boolean existsByDocumento(String documento);
 }

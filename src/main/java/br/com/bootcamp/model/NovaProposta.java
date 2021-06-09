@@ -1,17 +1,8 @@
 package br.com.bootcamp.model;
 
-import br.com.bootcamp.dto.request.AnaliseRequest;
-import br.com.bootcamp.dto.response.PropostaResponse;
 import br.com.bootcamp.model.enums.StatusProposta;
-import br.com.bootcamp.repository.AnaliseSolicitacaoClient;
 import br.com.bootcamp.util.CPFOrCNPJ;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import feign.FeignException;
-import org.springframework.http.HttpStatus;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -63,22 +54,15 @@ public class NovaProposta {
         return idProposta;
     }
 
-    public void realizarAnalise(AnaliseSolicitacaoClient analiseDeSolicitacaoClient) throws JsonMappingException, JsonProcessingException {
-        try {
-            AnaliseRequest analiseRequest = new AnaliseRequest(documento, nome,
-                    idProposta.toString());
-            PropostaResponse propostaResponse = analiseDeSolicitacaoClient.analisarProposta(analiseRequest);
-            if (propostaResponse.getResultadoSolicitacao().equals("SEM_RESTRICAO")) {
-                statusProposta = StatusProposta.ELEGIVEL;
-            }
-        } catch (FeignException e) {
-            PropostaResponse propostaResponse = new ObjectMapper().readValue(e.contentUTF8(),
-                    PropostaResponse.class);
-            if (e.status() == HttpStatus.UNPROCESSABLE_ENTITY.value()
-                    && propostaResponse.getResultadoSolicitacao().equals("COM_RESTRICAO")) {
-                statusProposta = StatusProposta.NAO_ELEGIVEL;
-            }
-        }
+    public String getDocumento() {
+        return documento;
     }
 
+    public String getNome() {
+        return nome;
+    }
+
+    public void setStatusProposta(StatusProposta statusProposta) {
+        this.statusProposta = statusProposta;
+    }
 }

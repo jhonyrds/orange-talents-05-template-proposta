@@ -20,10 +20,10 @@ public class AnaliseRequest {
     @ExisteId(entidade = NovaProposta.class, atributo = "idProposta")
     private Long idProposta;
 
-    public AnaliseRequest(String documento, String nome, String idProposta) {
-        this.documento = documento;
-        this.nome = nome;
-        this.idProposta = Long.parseLong(idProposta);
+    public AnaliseRequest(NovaProposta proposta) {
+        this.documento = proposta.getDocumento();
+        this.nome = proposta.getNome();
+        this.idProposta = proposta.getIdProposta();
     }
 
     public String getDocumento() {
