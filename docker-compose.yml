@@ -1,0 +1,197 @@
+version: '3'
+
+networks:
+  rede-propostas:
+    driver: bridge
+
+services:
+
+  nginx:
+    image: nginx:1.17
+      depends_on:
+        - sql-server-db
+        - proposta
+      networks:
+        - rede-propostas
+
+
+  sql-server-db:
+    container_name: sql-server-db
+    image: microsoft/mssql-server-linux
+    volumes:
+      - ~/mssqlserver:/var/opt/mssql
+    ports:
+      - "1433:1433"
+    user: root
+      expose:
+        - 1433
+      environment:
+        - ACCEPT_EULA=Y
+        - MSSQL_PID=Express
+        - SA_PASSWORD=123456
+        - cap-add=NET_ADMIN
+      networks:
+        - rede-propostas
+
+    proposta:
+      build:
+        dockerfile: Dockerfile
+        context: .
+      ports:
+        - 8080:8080
+      container_name: proposta
+      restart: on-failure
+      depends_on:
+        - sql-server-db
+        - analise
+        - contas
+      environment:
+        BANCO_DE_DADOS_URL: jdbc:sql-server-db://host.docker.internal:1433/proposta?createDatabaseIfNotExist=true
+        BANCO_DE_DADOS_USERNAME: sa
+        BANCO_DE_DADOS_PASSWORD: 123456
+        API_CARTOES_URL: http://contas:8888
+        API_ANALISE_FINANCEIRA_URL: http://analise:9999
+        KEYCLOAK_ISSUER_URI: http://keycloak/auth/realms/proposta-realm
+        KEYCLOAK_JWKS_URI: http://keycloak/auth/realms/proposta-realm/protocol/openid-connect/certs
+      networks:
+        - rede-propostas
+
+      zookeeper:
+        image: "confluentinc/cp-zookeeper:5.2.1"
+        environment:
+          ZOOKEEPER_CLIENT_PORT: 2181
+          ZOOKEEPER_TICK_TIME: 2000
+          ZOOKEEPER_SYNC_LIMIT: 2
+
+      kafka:
+        image: "confluentinc/cp-kafka:5.2.1"
+        ports:
+          - 9092:9092
+        depends_on:
+          - zookeeper
+        environment:
+          KAFKA_BROKER_ID: 1
+          KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+          KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+
+      postgres:
+        image: 'postgres:alpine'
+        volumes:
+          - postgres-volume:/var/lib/postgresql/data
+        ports:
+          - 5432:5432
+        environment:
+          POSTGRES_USER: keycloak
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: keycloak
+          POSTGRES_HOST: postgres
+
+      keycloak:
+        image: jboss/keycloak
+        ports:
+          - 18443:8443
+          - 18080:8080
+          - 19990:9990
+        depends_on:
+          # Just a delay to wait for postgres! This is not recommended!
+          - grafana
+          - prometheus
+          - jaeger
+          - kafka
+          - zookeeper
+          - contas
+          - analise
+          - transacoes
+          - postgres
+        environment:
+          DB_VENDOR: postgres
+          DB_ADDR: postgres
+          DB_PORT: 5432
+          DB_DATABASE: keycloak
+          DB_USER: keycloak
+          DB_PASSWORD: password
+          KEYCLOAK_USER: admin
+          KEYCLOAK_PASSWORD: Pa55w0rd
+          POSTGRES_PORT_5432_TCP_ADDR: 127.0.0.1
+
+      analise:
+        image: 'zupacademy/analise-financeira'
+        ports:
+          - 9999:9999
+        environment:
+          SERVER_PORT: 9999
+          LOG_LEVEL: INFO
+          URL_SISTEMA_CARTAO: http://contas:8888/api/cartoes
+          JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+
+      contas:
+        image: 'zupacademy/contas'
+        ports:
+          - 8888:8888
+        environment:
+          SERVER_PORT: 8888
+          LOG_LEVEL: INFO
+          JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+
+      transacoes:
+        image: 'zupacademy/transacoes'
+        ports:
+          - 7777:7777
+        depends_on:
+          - kafka
+        environment:
+          SERVER_PORT: 7777
+          LOG_LEVEL: INFO
+          KAFKA_HOST: "kafka:29092"
+          JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+
+      jaeger:
+        image: jaegertracing/all-in-one
+        ports:
+          - 5775:5775/udp
+          - 6831:6831/udp
+          - 6832:6832/udp
+          - 5778:5778
+          - 16686:16686
+          - 14268:14268
+          - 14250:14250
+          - 9411:9411
+        environment:
+          COLLECTOR_ZIPKIN_HTTP_PORT: 9411
+
+      prometheus:
+        image: prom/prometheus
+        volumes:
+          - prometheus-volume:/etc/prometheus/
+        network_mode: bridge
+        ports:
+          - "9090:9090"
+
+      grafana:
+        image: grafana/grafana
+        volumes:
+          - grafana-volume:/var/lib/grafana
+        network_mode: bridge
+        ports:
+          - "3000:3000"
+        depends_on:
+          - prometheus
+
+      vault:
+        image: vault:1.5.3
+        ports:
+          - 8200:8200
+        environment:
+          VAULT_DEV_ROOT_TOKEN_ID: ee413645-dbe8-4848-afc6-6bb2768ada75
+          VAULT_TOKEN: ee413645-dbe8-4848-afc6-6bb2768ada75
+          VAULT_ADDR: http://127.0.0.1:8200
+
+  volumes:
+    grafana-volume:
+    prometheus-volume:
+    postgres-volume:
+    mssqlserver:
