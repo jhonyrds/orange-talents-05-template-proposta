@@ -1,13 +1,10 @@
 package br.com.bootcamp.controller;
 
 import br.com.bootcamp.dto.request.AnaliseRequest;
-import br.com.bootcamp.dto.request.CartaoRequest;
 import br.com.bootcamp.dto.request.NovaPropostaRequest;
 import br.com.bootcamp.dto.response.AnalisePropostaResponse;
-import br.com.bootcamp.dto.response.CartaoResponse;
 import br.com.bootcamp.dto.response.PropostaResponse;
 import br.com.bootcamp.interfaces.AnaliseSolicitacaoClient;
-import br.com.bootcamp.interfaces.CartaoClient;
 import br.com.bootcamp.model.NovaProposta;
 import br.com.bootcamp.model.enums.StatusProposta;
 import br.com.bootcamp.repository.NovaPropostaRepository;
@@ -15,7 +12,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,33 +27,29 @@ import java.util.Optional;
 @RequestMapping("/proposta")
 public class NovaPropostaController {
 
-    @Autowired
-    private NovaPropostaRepository repository;
+    private NovaPropostaRepository propostaRepository;
 
-    @Autowired
     private AnaliseSolicitacaoClient analiseSolicitacao;
 
-    @Autowired
-    private CartaoClient cartaoClient;
+    public NovaPropostaController(NovaPropostaRepository propostaRepository, AnaliseSolicitacaoClient analiseSolicitacao) {
+        this.propostaRepository = propostaRepository;
+        this.analiseSolicitacao = analiseSolicitacao;
+    }
 
     @PostMapping
     @Transactional
     public ResponseEntity novaProposta(@RequestBody @Valid NovaPropostaRequest request,
                                        UriComponentsBuilder builder) throws JsonMappingException, JsonProcessingException {
-        if (repository.existsByDocumento(request.getDocumento())) {
+        if (propostaRepository.existsByDocumento(request.getDocumento())) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Já existe uma proposta com este documento: " + request.getDocumento());
         }
 
         NovaProposta proposta = request.toModel();
-        repository.save(proposta);
-
-        //atualização do status com o retorno do método
+        propostaRepository.save(proposta);
         realizarAnalise(proposta);
-        //adicionando número cartão
-        cadastraPropostaProvedorCartao(proposta);
-        repository.save(proposta);
+        propostaRepository.save(proposta);
 
-        URI uriLocation = builder.path("propostas/{id}").build(proposta.getId());
+        URI uriLocation = builder.path("propostas/{id}").buildAndExpand(proposta.getId()).toUri();
         return ResponseEntity.created(uriLocation).build();
 
     }
@@ -65,15 +57,14 @@ public class NovaPropostaController {
     @GetMapping("/{id}")
     @Transactional
     public ResponseEntity<?> consultaProposta(@PathVariable("id") Long id) {
-        Optional<NovaProposta> proposta = repository.findById(id);
+        Optional<NovaProposta> proposta = propostaRepository.findById(id);
         if (proposta.isPresent()) {
             return ResponseEntity.ok().body(new PropostaResponse(proposta.get()));
         }
         return ResponseEntity.notFound().build();
     }
 
-    private void realizarAnalise(NovaProposta proposta)
-            throws JsonProcessingException {
+    private void realizarAnalise(NovaProposta proposta) throws JsonProcessingException {
         try {
             analiseSolicitacao.analisarProposta(new AnaliseRequest(proposta));
             proposta.setStatusProposta(StatusProposta.ELEGIVEL);
@@ -86,21 +77,6 @@ public class NovaPropostaController {
                         && analisePropostaResponse.getResultadoSolicitacao().equals("COM_RESTRICAO")) {
                     proposta.setStatusProposta(StatusProposta.NAO_ELEGIVEL);
                 }
-            } else {
-                proposta.setStatusProposta(StatusProposta.NAO_VERIFICADO);
-            }
-        }
-    }
-
-    private void cadastraPropostaProvedorCartao(NovaProposta proposta) {
-        StatusProposta statusProposta = proposta.getStatusProposta();
-        if (statusProposta.equals(StatusProposta.ELEGIVEL)) {
-            CartaoRequest cartaoRequest = new CartaoRequest(proposta.getDocumento(), proposta.getNome(), proposta.getId().toString());
-            try {
-                CartaoResponse cartaoResponse = cartaoClient.cadastraPropostaCartao(cartaoRequest);
-                proposta.setIdCartao(cartaoResponse.getId());
-            } catch (FeignException e) {
-
             }
         }
     }

@@ -6,56 +6,47 @@ networks:
 
 services:
 
-  nginx:
-    image: nginx:1.17
-      depends_on:
-        - sql-server-db
-        - proposta
-      networks:
-        - rede-propostas
-
-
-  sql-server-db:
-    container_name: sql-server-db
-    image: microsoft/mssql-server-linux
-    volumes:
-      - ~/mssqlserver:/var/opt/mssql
-    ports:
-      - "1433:1433"
-    user: root
-      expose:
-        - 1433
-      environment:
-        - ACCEPT_EULA=Y
-        - MSSQL_PID=Express
-        - SA_PASSWORD=123456
-        - cap-add=NET_ADMIN
-      networks:
-        - rede-propostas
-
-    proposta:
-      build:
-        dockerfile: Dockerfile
-        context: .
-      ports:
-        - 8080:8080
-      container_name: proposta
-      restart: on-failure
-      depends_on:
-        - sql-server-db
-        - analise
-        - contas
-      environment:
-        BANCO_DE_DADOS_URL: jdbc:sql-server-db://host.docker.internal:1433/proposta?createDatabaseIfNotExist=true
-        BANCO_DE_DADOS_USERNAME: sa
-        BANCO_DE_DADOS_PASSWORD: 123456
-        API_CARTOES_URL: http://contas:8888
-        API_ANALISE_FINANCEIRA_URL: http://analise:9999
-        KEYCLOAK_ISSUER_URI: http://keycloak/auth/realms/proposta-realm
-        KEYCLOAK_JWKS_URI: http://keycloak/auth/realms/proposta-realm/protocol/openid-connect/certs
-      networks:
-        - rede-propostas
-
+#  sql-server-db:
+#    container_name: sql-server-db
+#    image: microsoft/mssql-server-linux
+#    volumes:
+#      - ~/mssqlserver:/var/opt/mssql
+#    ports:
+#      - "1433:1433"
+#    user: root
+#      expose:
+#        - 1433
+#      environment:
+#        - ACCEPT_EULA=Y
+#        - MSSQL_PID=Express
+#        - SA_PASSWORD=123456
+#        - cap-add=NET_ADMIN
+#      networks:
+#        - rede-propostas
+#
+#    proposta:
+#      build:
+#        dockerfile: Dockerfile
+#        context: .
+#      ports:
+#        - 8080:8080
+#      container_name: proposta
+#      restart: on-failure
+#      depends_on:
+#        - sql-server-db
+#        - analise
+#        - contas
+#      environment:
+#        BANCO_DE_DADOS_URL: jdbc:sql-server-db://host.docker.internal:1433/proposta?createDatabaseIfNotExist=true
+#        BANCO_DE_DADOS_USERNAME: sa
+#        BANCO_DE_DADOS_PASSWORD: 123456
+#        API_CARTOES_URL: http://contas:8888
+#        API_ANALISE_FINANCEIRA_URL: http://analise:9999
+#        KEYCLOAK_ISSUER_URI: http://keycloak/auth/realms/proposta-realm
+#        KEYCLOAK_JWKS_URI: http://keycloak/auth/realms/proposta-realm/protocol/openid-connect/certs
+#      networks:
+#        - rede-propostas
+#
       zookeeper:
         image: "confluentinc/cp-zookeeper:5.2.1"
         environment:
@@ -194,4 +185,4 @@ services:
     grafana-volume:
     prometheus-volume:
     postgres-volume:
-    mssqlserver:
+#    mssqlserver:

@@ -38,7 +38,8 @@ public class NovaProposta {
     @Enumerated(EnumType.STRING)
     private StatusProposta statusProposta;
 
-    private String idCartao;
+    @OneToOne
+    private Cartao cartao;
 
     @Deprecated
     public NovaProposta() {
@@ -72,11 +73,11 @@ public class NovaProposta {
         this.statusProposta = statusProposta;
     }
 
-    public String getIdCartao() {
-        return idCartao;
+    public Cartao getCartao() {
+        return cartao;
     }
 
-    public void setIdCartao(String idCartao) {
-        this.idCartao = idCartao;
+    public void setCartao(Cartao cartao) {
+        this.cartao = cartao;
     }
 }

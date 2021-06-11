@@ -11,5 +11,5 @@ import java.util.List;
 public interface NovaPropostaRepository extends JpaRepository<NovaProposta, Long> {
     boolean existsByDocumento(String documento);
 
-    List<NovaProposta> findByStatusPropostaEqualsAndIdCartaoIsNull(StatusProposta status);
+    List<NovaProposta> findByStatusPropostaEqualsAndCartaoIsNull(StatusProposta status);
 }
