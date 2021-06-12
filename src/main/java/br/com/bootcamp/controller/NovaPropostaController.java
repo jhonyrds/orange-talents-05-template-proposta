@@ -10,7 +10,6 @@ import br.com.bootcamp.model.enums.StatusProposta;
 import br.com.bootcamp.repository.NovaPropostaRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,18 +65,13 @@ public class NovaPropostaController {
 
     private void realizarAnalise(NovaProposta proposta) throws JsonProcessingException {
         try {
-            analiseSolicitacao.analisarProposta(new AnaliseRequest(proposta));
-            proposta.setStatusProposta(StatusProposta.ELEGIVEL);
-        } catch (FeignException e) {
-            String corpoResposta = e.contentUTF8();
-            if (!e.contentUTF8().isEmpty()) {
-                AnalisePropostaResponse analisePropostaResponse = new ObjectMapper().readValue(corpoResposta,
-                        AnalisePropostaResponse.class);
-                if (e.status() == HttpStatus.UNPROCESSABLE_ENTITY.value()
-                        && analisePropostaResponse.getResultadoSolicitacao().equals("COM_RESTRICAO")) {
-                    proposta.setStatusProposta(StatusProposta.NAO_ELEGIVEL);
-                }
+            AnaliseRequest analiseRequest = new AnaliseRequest(proposta);
+            AnalisePropostaResponse analiseResponse = analiseSolicitacao.analisarProposta(analiseRequest);
+            if (analiseResponse.getResultadoSolicitacao().equals("SEM_RESTRICAO")) {
+                proposta.setStatusProposta(StatusProposta.ELEGIVEL);
             }
+        } catch (FeignException e) {
+            proposta.setStatusProposta(StatusProposta.NAO_ELEGIVEL);
         }
     }
 }
