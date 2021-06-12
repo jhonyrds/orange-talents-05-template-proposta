@@ -1,5 +1,10 @@
 package br.com.bootcamp.model;
 
+import br.com.bootcamp.dto.request.BloqueioCartaoRequest;
+import br.com.bootcamp.interfaces.CartaoClient;
+import feign.FeignException;
+import org.springframework.http.HttpStatus;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +24,9 @@ public class Cartao {
     @OneToMany(cascade = CascadeType.MERGE)
     private List<Biometria> biometrias;
 
+    @OneToMany(cascade = CascadeType.MERGE)
+    private List<Bloqueio> bloqueios;
+
     @Deprecated
     public Cartao() {
     }
@@ -36,5 +44,20 @@ public class Cartao {
     public void cadastrarBiometria(Biometria biometria) {
         biometrias.add(biometria);
 
+    }
+
+    public HttpStatus realizarBloqueioClient(CartaoClient cartaoClient) {
+        try {
+            cartaoClient.bloquearCartao(numeroCartao, new BloqueioCartaoRequest("Sistema de Propostas"));
+            return HttpStatus.OK;
+        } catch (FeignException e) {
+            if (e.status() == HttpStatus.UNPROCESSABLE_ENTITY.value())
+                return HttpStatus.UNPROCESSABLE_ENTITY;
+            return HttpStatus.SERVICE_UNAVAILABLE;
+        }
+    }
+
+    public void adicionaDadosDeBloqueio(Bloqueio bloqueio) {
+        bloqueios.add(bloqueio);
     }
 }
