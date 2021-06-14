@@ -1,7 +1,9 @@
 package br.com.bootcamp.interfaces;
 
+import br.com.bootcamp.dto.request.AvisoViagemRequest;
 import br.com.bootcamp.dto.request.BloqueioCartaoRequest;
 import br.com.bootcamp.dto.request.CartaoRequest;
+import br.com.bootcamp.dto.response.AvisoViagemResponse;
 import br.com.bootcamp.dto.response.BloqueioCartaoResponse;
 import br.com.bootcamp.dto.response.CartaoResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -21,4 +23,7 @@ public interface CartaoClient {
 
     @PostMapping("/{idCartao}/bloqueio")
     BloqueioCartaoResponse bloquearCartao(@PathVariable("idCartao") String idCartao, BloqueioCartaoRequest request);
+
+    @PostMapping("/{idCartao}/aviso")
+    AvisoViagemResponse avisarSobreViagem(@PathVariable("idCartao") String idCartao, AvisoViagemRequest aviso);
 }
