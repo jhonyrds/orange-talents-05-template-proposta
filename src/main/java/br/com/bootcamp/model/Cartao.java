@@ -20,7 +20,7 @@ public class Cartao {
 
     private String uuid;
 
-    private String numeroCartao;
+    private String idCartao;
 
     @OneToMany(cascade = CascadeType.MERGE)
     private List<Biometria> biometrias;
@@ -31,18 +31,22 @@ public class Cartao {
     @Enumerated(EnumType.STRING)
     private StatusCartao statusCartao;
 
+    @OneToMany(mappedBy = "cartao", cascade = CascadeType.MERGE)
+    private List<AvisoViagem> avisosViagem;
+
     @Deprecated
     public Cartao() {
     }
 
-    public Cartao(String numeroCartao) {
-        this.numeroCartao = numeroCartao;
+    public Cartao(String idCartao) {
+        this.idCartao = idCartao;
         this.biometrias = new ArrayList<>();
         this.uuid = UUID.randomUUID().toString();
+        this.avisosViagem = new ArrayList<>();
     }
 
-    public String getNumeroCartao() {
-        return numeroCartao;
+    public String getIdCartao() {
+        return idCartao;
     }
 
     public void cadastrarBiometria(Biometria biometria) {
@@ -52,7 +56,7 @@ public class Cartao {
 
     public HttpStatus realizarBloqueioClient(CartaoClient cartaoClient) {
         try {
-            cartaoClient.bloquearCartao(numeroCartao, new BloqueioCartaoRequest("Sistema de Propostas"));
+            cartaoClient.bloquearCartao(idCartao, new BloqueioCartaoRequest("Sistema de Propostas"));
             return HttpStatus.OK;
         } catch (FeignException e) {
             if (e.status() == HttpStatus.UNPROCESSABLE_ENTITY.value())
@@ -64,5 +68,9 @@ public class Cartao {
     public void adicionaDadosDeBloqueio(Bloqueio bloqueio) {
         statusCartao = StatusCartao.BLOQUEADO;
         bloqueios.add(bloqueio);
+    }
+
+    public void cadastrarAvisoViagem(AvisoViagem avisoViagem) {
+        this.avisosViagem.add(avisoViagem);
     }
 }

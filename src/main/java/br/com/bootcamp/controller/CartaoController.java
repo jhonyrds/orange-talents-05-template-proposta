@@ -1,7 +1,9 @@
 package br.com.bootcamp.controller;
 
+import br.com.bootcamp.dto.request.AvisoViagemRequest;
 import br.com.bootcamp.dto.request.BiometriaRequest;
 import br.com.bootcamp.interfaces.CartaoClient;
+import br.com.bootcamp.model.AvisoViagem;
 import br.com.bootcamp.model.Biometria;
 import br.com.bootcamp.model.Bloqueio;
 import br.com.bootcamp.model.Cartao;
@@ -31,11 +33,11 @@ public class CartaoController {
         this.cartaoClient = cartaoClient;
     }
 
-    @PostMapping("/biometrias")
-    public ResponseEntity<?> cadastrarBiometria(@PathParam(value = "uuidCartao") String uuidCartao,
+    @PostMapping("/biometrias/{idCartao}")
+    public ResponseEntity<?> cadastrarBiometria(@PathVariable(value = "idCartao") String idCartao,
                                                 @RequestBody @Valid BiometriaRequest request, UriComponentsBuilder uriBuilder){
 
-        Optional<Cartao> cartao = cartaoRepository.findByUuid(uuidCartao);
+        Optional<Cartao> cartao = cartaoRepository.findByidCartao(idCartao);
 
         if (cartao.isPresent()){
             Biometria biometria = new Biometria(request.getImpressaoDigital());
@@ -48,9 +50,9 @@ public class CartaoController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/bloqueio")
-    public ResponseEntity<?> bloquearCartao(@RequestParam(value = "uuidCartao") String uuidCartao, HttpServletRequest request){
-        Optional<Cartao> cartao = cartaoRepository.findByUuid(uuidCartao);
+    @PostMapping("/bloqueio/{idCartao}")
+    public ResponseEntity<?> bloquearCartao(@PathVariable(value = "idCartao") String idCartao, HttpServletRequest request){
+        Optional<Cartao> cartao = cartaoRepository.findByidCartao(idCartao);
 
         if (cartao.isPresent()){
             HttpStatus bloqueio = cartao.get().realizarBloqueioClient(cartaoClient);
@@ -63,5 +65,26 @@ public class CartaoController {
             return ResponseEntity.status(bloqueio).build();
         }
         return  ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("aviso/{id}")
+    public ResponseEntity<?> avisoViagem(@PathVariable(value = "idCartao") String idCartao,
+         @RequestBody @Valid AvisoViagemRequest avisoRequest, HttpServletRequest request) {
+
+        Optional<Cartao> cartao = cartaoRepository.findByidCartao(idCartao);
+
+        if (cartao.isPresent()) {
+            String ipCliente = request.getLocalAddr();
+            String userAgent = request.getHeader("User-Agent");
+            AvisoViagem avisoViagem = new AvisoViagem(avisoRequest.getDestinoViagem(),
+                    avisoRequest.getDataTerminoViagem(), ipCliente, userAgent, cartao.get());
+            cartao.get().cadastrarAvisoViagem(avisoViagem);
+            cartaoRepository.save(cartao.get());
+
+            return ResponseEntity.ok().build();
+        }
+
+        return ResponseEntity.notFound().build();
+
     }
 }

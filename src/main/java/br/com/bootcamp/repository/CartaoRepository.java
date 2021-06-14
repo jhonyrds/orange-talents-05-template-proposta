@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface CartaoRepository extends CrudRepository<Cartao, Long> {
-    Optional<Cartao> findByUuid(String uuid);
+    Optional<Cartao> findByidCartao(String idCartao);
 }

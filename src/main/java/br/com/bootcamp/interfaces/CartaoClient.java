@@ -19,6 +19,6 @@ public interface CartaoClient {
     @GetMapping
     CartaoResponse buscaCartaoProposta(@RequestParam(value = "id") String id);
 
-    @PostMapping("/{numeroCartao}/bloqueio")
-    BloqueioCartaoResponse bloquearCartao(@PathVariable("numeroCartao") String numeroCartao, BloqueioCartaoRequest request);
+    @PostMapping("/{idCartao}/bloqueio")
+    BloqueioCartaoResponse bloquearCartao(@PathVariable("idCartao") String idCartao, BloqueioCartaoRequest request);
 }
