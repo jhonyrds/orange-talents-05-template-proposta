@@ -9,11 +9,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests(authorizeRequests -> authorizeRequests.antMatchers(HttpMethod.GET, "/proposta/**")
-        .hasAnyAuthority("SCOPE_propostas:read").antMatchers(HttpMethod.GET, "/cartao/***")
-        .hasAnyAuthority("SCOPE_cartoes:read").antMatchers(HttpMethod.POST, "/cartao/**")
-        .hasAnyAuthority("SCOPE_cartoes_write").antMatchers(HttpMethod.POST, "/proposta/**")
-        .hasAnyAuthority("SCOPE_propostas:write").anyRequest().authenticated())
+        http.csrf().disable().authorizeRequests().antMatchers(HttpMethod.GET, "/actuator/**")
+                .hasAuthority("SCOPE_proposta:actuator").antMatchers(HttpMethod.GET, "/proposta/**")
+                .hasAuthority("SCOPE_propostas:read").antMatchers(HttpMethod.GET, "/cartao/**")
+                .hasAuthority("SCOPE_cartoes:read").antMatchers(HttpMethod.POST, "/cartao/**")
+                .hasAuthority("SCOPE_cartoes:write").antMatchers(HttpMethod.POST, "/proposta/**")
+                .hasAuthority("SCOPE_propostas:write").anyRequest().authenticated().and()
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
     }
 }
