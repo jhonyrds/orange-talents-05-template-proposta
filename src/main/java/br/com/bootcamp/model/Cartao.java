@@ -2,6 +2,7 @@ package br.com.bootcamp.model;
 
 import br.com.bootcamp.dto.request.BloqueioCartaoRequest;
 import br.com.bootcamp.interfaces.CartaoClient;
+import br.com.bootcamp.model.enums.StatusCartao;
 import feign.FeignException;
 import org.springframework.http.HttpStatus;
 
@@ -26,6 +27,9 @@ public class Cartao {
 
     @OneToMany(cascade = CascadeType.MERGE)
     private List<Bloqueio> bloqueios;
+
+    @Enumerated(EnumType.STRING)
+    private StatusCartao statusCartao;
 
     @Deprecated
     public Cartao() {
@@ -58,6 +62,7 @@ public class Cartao {
     }
 
     public void adicionaDadosDeBloqueio(Bloqueio bloqueio) {
+        statusCartao = StatusCartao.BLOQUEADO;
         bloqueios.add(bloqueio);
     }
 }
