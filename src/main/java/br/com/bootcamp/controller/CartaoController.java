@@ -9,6 +9,8 @@ import br.com.bootcamp.model.*;
 import br.com.bootcamp.model.enums.TipoCarteira;
 import br.com.bootcamp.repository.CartaoRepository;
 import feign.FeignException;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,14 +31,21 @@ public class CartaoController {
 
     private CartaoClient cartaoClient;
 
-    public CartaoController(CartaoRepository cartaoRepository, CartaoClient cartaoClient) {
+    private Tracer tracer;
+
+    public CartaoController(CartaoRepository cartaoRepository, CartaoClient cartaoClient, Tracer tracer) {
         this.cartaoRepository = cartaoRepository;
         this.cartaoClient = cartaoClient;
+        this.tracer = tracer;
     }
 
     @PostMapping("/biometrias/{idCartao}")
     public ResponseEntity<?> cadastrarBiometria(@PathVariable(value = "idCartao") String idCartao,
                                                 @RequestBody @Valid BiometriaRequest request, UriComponentsBuilder uriBuilder) {
+
+        Span activeSpan = tracer.activeSpan();
+        String userEmail = activeSpan.getBaggageItem("user.email");
+        activeSpan.setBaggageItem("user.email", userEmail);
 
         Optional<Cartao> cartao = cartaoRepository.findByidCartao(idCartao);
 
@@ -53,6 +62,11 @@ public class CartaoController {
 
     @PostMapping("/bloqueio/{idCartao}")
     public ResponseEntity<?> bloquearCartao(@PathVariable(value = "idCartao") String idCartao, HttpServletRequest request) {
+
+        Span activeSpan = tracer.activeSpan();
+        String userEmail = activeSpan.getBaggageItem("user.email");
+        activeSpan.setBaggageItem("user.email", userEmail);
+
         Optional<Cartao> cartao = cartaoRepository.findByidCartao(idCartao);
 
         if (cartao.isPresent()) {
@@ -71,6 +85,10 @@ public class CartaoController {
     @PostMapping("aviso/{id}")
     public ResponseEntity<?> avisoViagem(@PathVariable(value = "idCartao") String idCartao,
                                          @RequestBody @Valid AvisoViagemRequest avisoRequest, HttpServletRequest request) {
+
+        Span activeSpan = tracer.activeSpan();
+        String userEmail = activeSpan.getBaggageItem("user.email");
+        activeSpan.setBaggageItem("user.email", userEmail);
 
         Optional<Cartao> cartao = cartaoRepository.findByidCartao(idCartao);
 
@@ -95,6 +113,11 @@ public class CartaoController {
     @PostMapping("{id}/carteira")
     public ResponseEntity<?> adicionaCarteira(@PathVariable(value = "idCartao") String idCartao,
                                               @RequestBody @Valid CarteiraRequest request, UriComponentsBuilder uriBuilder) {
+
+        Span activeSpan = tracer.activeSpan();
+        String userEmail = activeSpan.getBaggageItem("user.email");
+        activeSpan.setBaggageItem("user.email", userEmail);
+
         Optional<Cartao> cartao = cartaoRepository.findByidCartao(idCartao);
 
         if (cartao.isPresent()) {

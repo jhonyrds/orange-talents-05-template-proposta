@@ -11,6 +11,8 @@ import br.com.bootcamp.repository.NovaPropostaRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import feign.FeignException;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,15 +32,23 @@ public class NovaPropostaController {
 
     private AnaliseSolicitacaoClient analiseSolicitacao;
 
-    public NovaPropostaController(NovaPropostaRepository propostaRepository, AnaliseSolicitacaoClient analiseSolicitacao) {
+    private Tracer tracer;
+
+    public NovaPropostaController(NovaPropostaRepository propostaRepository, AnaliseSolicitacaoClient analiseSolicitacao, Tracer tracer) {
         this.propostaRepository = propostaRepository;
         this.analiseSolicitacao = analiseSolicitacao;
+        this.tracer = tracer;
     }
 
     @PostMapping
     @Transactional
     public ResponseEntity novaProposta(@RequestBody @Valid NovaPropostaRequest request,
                                        UriComponentsBuilder builder) throws JsonMappingException, JsonProcessingException {
+
+        Span activeSpan = tracer.activeSpan();
+        String userEmail = activeSpan.getBaggageItem("user.email");
+        activeSpan.setBaggageItem("user.email", userEmail);
+
         if (propostaRepository.existsByDocumento(request.getDocumento())) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Já existe uma proposta com este documento: " + request.getDocumento());
         }
@@ -56,6 +66,11 @@ public class NovaPropostaController {
     @GetMapping("/{id}")
     @Transactional
     public ResponseEntity<?> consultaProposta(@PathVariable("id") Long id) {
+
+        Span activeSpan = tracer.activeSpan();
+        String userEmail = activeSpan.getBaggageItem("user.email");
+        activeSpan.setBaggageItem("user.email", userEmail);
+
         Optional<NovaProposta> proposta = propostaRepository.findById(id);
         if (proposta.isPresent()) {
             return ResponseEntity.ok().body(new PropostaResponse(proposta.get()));
