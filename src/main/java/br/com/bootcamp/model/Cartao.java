@@ -34,6 +34,9 @@ public class Cartao {
     @OneToMany(mappedBy = "cartao", cascade = CascadeType.MERGE)
     private List<AvisoViagem> avisosViagem;
 
+    @OneToMany(mappedBy = "cartao", cascade = CascadeType.MERGE)
+    private List<CarteiraDigital> carteiras;
+
     @Deprecated
     public Cartao() {
     }
@@ -43,6 +46,7 @@ public class Cartao {
         this.biometrias = new ArrayList<>();
         this.uuid = UUID.randomUUID().toString();
         this.avisosViagem = new ArrayList<>();
+        this.carteiras = new ArrayList<>();
     }
 
     public String getIdCartao() {
@@ -72,5 +76,9 @@ public class Cartao {
 
     public void cadastrarAvisoViagem(AvisoViagem avisoViagem) {
         this.avisosViagem.add(avisoViagem);
+    }
+
+    public void adicionarCarteiraDigital(CarteiraDigital carteiraDigital){
+        this.carteiras.add(carteiraDigital);
     }
 }

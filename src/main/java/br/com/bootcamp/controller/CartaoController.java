@@ -2,11 +2,10 @@ package br.com.bootcamp.controller;
 
 import br.com.bootcamp.dto.request.AvisoViagemRequest;
 import br.com.bootcamp.dto.request.BiometriaRequest;
+import br.com.bootcamp.dto.request.CarteiraRequest;
+import br.com.bootcamp.dto.response.CarteiraResponse;
 import br.com.bootcamp.interfaces.CartaoClient;
-import br.com.bootcamp.model.AvisoViagem;
-import br.com.bootcamp.model.Biometria;
-import br.com.bootcamp.model.Bloqueio;
-import br.com.bootcamp.model.Cartao;
+import br.com.bootcamp.model.*;
 import br.com.bootcamp.repository.CartaoRepository;
 import feign.FeignException;
 import org.springframework.http.HttpStatus;
@@ -85,6 +84,31 @@ public class CartaoController {
                 if (e.status() == HttpStatus.UNPROCESSABLE_ENTITY.value())
                     return ResponseEntity.unprocessableEntity().build();
                 return ResponseEntity.status(e.status()).build();
+            }
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("{id}/carteira")
+    public ResponseEntity<?> adicionaCarteira(@PathVariable(value = "idCartao") String idCartao,
+                                              @RequestBody @Valid CarteiraRequest request, UriComponentsBuilder uriBuilder) {
+        Optional<Cartao> cartao = cartaoRepository.findByidCartao(idCartao);
+
+        if (cartao.isPresent()) {
+            try {
+                request.setCarteira("PAYPAL");
+                CarteiraResponse carteiraResponse = cartaoClient.adicionarCarteira(idCartao, request);
+                cartao.get().adicionarCarteiraDigital(new CarteiraDigital(carteiraResponse.getId(),
+                        request.getEmail(), request.getTipoCarteira(), cartao.get()));
+                cartaoRepository.save(cartao.get());
+
+                URI uri = uriBuilder.path("/{idCartao}/carteira/{id}").build(cartao.get().getIdCartao(),
+                        carteiraResponse.getId());
+
+                return ResponseEntity.created(uri).build();
+
+            } catch (FeignException feignException) {
+                return ResponseEntity.status(feignException.status()).build();
             }
         }
         return ResponseEntity.notFound().build();

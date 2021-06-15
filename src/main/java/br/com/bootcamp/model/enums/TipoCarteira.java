@@ -1,2 +1,5 @@
-package br.com.bootcamp.model.enums;public enum TipoCarteira {
+package br.com.bootcamp.model.enums;
+
+public enum TipoCarteira {
+    PAYPAL
 }
