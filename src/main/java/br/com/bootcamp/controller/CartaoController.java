@@ -6,6 +6,7 @@ import br.com.bootcamp.dto.request.CarteiraRequest;
 import br.com.bootcamp.dto.response.CarteiraResponse;
 import br.com.bootcamp.interfaces.CartaoClient;
 import br.com.bootcamp.model.*;
+import br.com.bootcamp.model.enums.TipoCarteira;
 import br.com.bootcamp.repository.CartaoRepository;
 import feign.FeignException;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.Optional;
+
+import static org.springframework.util.Assert.isTrue;
 
 @RestController
 @RequestMapping("/cartao")
@@ -96,7 +99,8 @@ public class CartaoController {
 
         if (cartao.isPresent()) {
             try {
-                request.setCarteira("PAYPAL");
+                isTrue(TipoCarteira.tipoCarteiraExistente(request.getCarteira()),
+                        "A carteira informada não existe");
                 CarteiraResponse carteiraResponse = cartaoClient.adicionarCarteira(idCartao, request);
                 cartao.get().adicionarCarteiraDigital(new CarteiraDigital(carteiraResponse.getId(),
                         request.getEmail(), request.getTipoCarteira(), cartao.get()));
@@ -106,6 +110,7 @@ public class CartaoController {
                         carteiraResponse.getId());
 
                 return ResponseEntity.created(uri).build();
+
 
             } catch (FeignException feignException) {
                 return ResponseEntity.status(feignException.status()).build();
