@@ -9,8 +9,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable().authorizeRequests().antMatchers(HttpMethod.GET, "/actuator/**")
-                .hasAuthority("SCOPE_proposta:actuator").antMatchers(HttpMethod.GET, "/proposta/**")
+        http.csrf().disable().authorizeRequests()
+                .antMatchers("/actuator/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/proposta/**")
                 .hasAuthority("SCOPE_propostas:read").antMatchers(HttpMethod.GET, "/cartao/**")
                 .hasAuthority("SCOPE_cartoes:read").antMatchers(HttpMethod.POST, "/cartao/**")
                 .hasAuthority("SCOPE_cartoes:write").antMatchers(HttpMethod.POST, "/proposta/**")
