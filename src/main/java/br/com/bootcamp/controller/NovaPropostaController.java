@@ -8,6 +8,7 @@ import br.com.bootcamp.interfaces.AnaliseSolicitacaoClient;
 import br.com.bootcamp.model.NovaProposta;
 import br.com.bootcamp.model.enums.StatusProposta;
 import br.com.bootcamp.repository.NovaPropostaRepository;
+import br.com.bootcamp.util.Criptografia;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import feign.FeignException;
@@ -49,7 +50,9 @@ public class NovaPropostaController {
         String userEmail = activeSpan.getBaggageItem("user.email");
         activeSpan.setBaggageItem("user.email", userEmail);
 
-        if (propostaRepository.existsByDocumento(request.getDocumento())) {
+        String documentoCriptografado = Criptografia.encrypt(request.getDocumento());
+
+        if (propostaRepository.existsByDocumento(documentoCriptografado)) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Já existe uma proposta com este documento: " + request.getDocumento());
         }
 

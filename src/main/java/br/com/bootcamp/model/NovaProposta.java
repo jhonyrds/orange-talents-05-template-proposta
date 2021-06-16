@@ -2,6 +2,7 @@ package br.com.bootcamp.model;
 
 import br.com.bootcamp.model.enums.StatusProposta;
 import br.com.bootcamp.util.CPFOrCNPJ;
+import br.com.bootcamp.util.Criptografia;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -16,7 +17,6 @@ public class NovaProposta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @CPFOrCNPJ
     @NotBlank
     @Column(unique = true)
     private String documento;
@@ -46,7 +46,7 @@ public class NovaProposta {
     }
 
     public NovaProposta(String documento, String email, String nome, String endereco, BigDecimal salarioBruto) {
-        this.documento = documento;
+        this.documento = Criptografia.encrypt(documento);
         this.email = email;
         this.nome = nome;
         this.endereco = endereco;
